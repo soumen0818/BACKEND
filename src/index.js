@@ -1,55 +1,25 @@
+import express from "express";
 import connectDB from "./db/index.js";
-// require ('dotenv').config({path : './env'})
-// import { configDotenv } from "dotenv"
 import dotenv from "dotenv";
+import userRoutes from "./routes/user.routes.js";
 
 dotenv.config({
   path: "./env",
 });
 
+const app = express(); // Initialize the app using express
+
+// Middleware to parse JSON requests
+app.use(express.json());
+
+app.use("/api/v1/users", userRoutes);
+
 connectDB()
   .then(() => {
-    app.listen (process.env.PORT || 8000 , () => {
-      console.log(`server is runing at port : ${process.env.PORT}`);
-      
-    })
+    app.listen(process.env.PORT || 3000, () => {
+      console.log(`Server is running at port: ${process.env.PORT || 3000}`);
+    });
   })
   .catch((err) => {
-    console.log("MongoDB connection failed !!!");
+    console.log("MongoDB connection failed !!!", err);
   });
-
-
-
-
-
-
-
-
-
-
-
-  
-/*
-import express from "express";
-
-const app = express()(async () => {
-  try {
-    await mongoose.connect(`${process.env.MONGODB_URL}/ ${DB_Name}`);
-
-    app.on("error", (error) => {
-       console.log("Error: ", error);
-       throw error
-       
-    });
-
-    app.listen(process.env.PORT, () => {
-        console.log(`App is listen on PORT ${process.env.PORT}`);
-        
-    })
-
-  } catch (error) {
-    console.error("EROOR : ", error);
-    throw error;
-  }
-})();
-*/
