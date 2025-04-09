@@ -3,6 +3,7 @@ import { ApiError } from "../utils/apiError.js";
 import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { response } from "express";
 
 const registerUser = asyncHandler(async (req, res) => { 
   // get user details from fronend
@@ -112,9 +113,50 @@ if (!ispasswordvalid) {
 }
 
 const {accessToken , refreshToken} = await genrateaccesandRefreshToken(user._id);
+const loggedInuser = await user.findById(user._id).select("-password -refreshToken")
 
+const options = {
+  httpOnly : true,
+  secure : true
+}
+
+return res 
+.status(200)
+.Cookie("accessToken", accessToken, options)
+.refreshToken("refreshToken", refreshToken, options)
+.json(
+  200,
+  {
+    user : loggedInuser, accessToken, refreshToken,
+  },
+ "User logged in successfully"
+
+)
 });
 
+const logoutUser = asyncHandler(async (req, res) => {
+   User.findByIdAndUpdate(
+    req.user._id,{
+      $set : {
+        refreshToken : undefined
+      }
+    }, 
+    {
+      new : true
+    }
+   )
+
+   const options = {
+    httpOnly : true,
+    secure : true
+  }
+
+  return res
+  .status(200)
+  .clearCookie("accessToken", options)
+  .clearCookie("refreshToken", options)
+  .json(new ApiResponse(200, {}, "user logout successfully"))
+})
 
 const genrateaccesandRefreshToken = async(userId) =>{
   try {
@@ -136,4 +178,4 @@ const genrateaccesandRefreshToken = async(userId) =>{
 
 
 
-export { registerUser , loginUser };
+export { registerUser , loginUser, logoutUser };
